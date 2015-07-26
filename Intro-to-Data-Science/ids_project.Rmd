@@ -1,5 +1,5 @@
 ---
-title: "Intro to data sciene project"
+title: "Intro to data science project"
 author: "Daniel Nava"
 output: html_document
 ---
@@ -41,7 +41,7 @@ I'm using Mann-Whitney U test because the distribution of the samples of the rid
 
 * **1.4 What is the significance and interpretation of these results?**
 
-The obtained p-value indicate that there are a statistically significant difference between both samples and we can reject the null Hyphotesis, because the p-value (5.48*10^-6) is smaller than the alpha level selected(0.05).
+The obtained p-value indicate that there are a statistically significant difference between both samples and we can reject the null Hypothesis, because the p-value (5.48*10^-6) is smaller than the alpha level selected(0.05).
 
 ##Section 2. Linear Regression
 
@@ -165,16 +165,16 @@ The interaction terms I used as features are:
 Including all the polynomial terms of hour and day_week.
 This will create a lot more of features, but, as shown by the previous plot, will also adjust better the predictions to the actual values.
 
-At this point now I was worried about overfitting the model, with the interaction features I was adding more than 1500 new features, so I started using a cross-validation technique, I splitted the set into training and testing sets, using 90% of the data for training and 10% for testing. Then, I created the model over the training set, and started to measure R<sup>2</sup> obtained by the testing dataset. If the difference between R<sup>2</sup> on training and testing decreases as I include more features I will know that the model actually improved its prediction power, but if the difference increases, that would mean that the predicting power of the model is decreasing and has started to model the random noise in the data. 
+At this point now I was worried about over fitting the model, with the interaction features I was adding more than 1500 new features, so I started using a cross-validation technique, I divided the set into training and testing sets, using 90% of the data for training and 10% for testing. Then, I created the model over the training set, and started to measure R<sup>2</sup> obtained by the testing dataset. If the difference between R<sup>2</sup> on training and testing decreases as I include more features I will know that the model actually improved its prediction power, but if the difference increases, that would mean that the predicting power of the model is decreasing and has started to model the random noise in the data. 
 
-To avoid just getting better for a specific escenario, I tried with 3 different random seeds when splitting the dataset and I check that in none of them this difference was increasing.
+To avoid just getting better for a specific scenario, I tried with 3 different random seeds when splitting the dataset and I check that in none of them this difference was increasing.
 
 **Weather features**
-So far, according to the R<sup>2</sup> about 86% percent of variance in the data is being explained by the model, but, without any weather variable yet, and with only 14% variance left to explain, considering that part of that variance is just an unexplainable random error, I can expect a very low impact of any weather variable on the goodness of fit, which made it harder for me to find correlations and model weather variables.
+So far, according to the R<sup>2</sup> about 86% percent of variance in the data is being explained by the model, but, without any weather variable yet, and with only 14% variance left to explain, considering that part of that variance is just an unexplained random error, I can expect a very low impact of any weather variable on the goodness of fit, which made it harder for me to find correlations and model weather variables.
 
 I included **rain** and **tempi** because, by intuition, I would expect some correlation between ridership and weather, for example, I would expect more people take the subway whenever its raining to avoid rain, or to avoid using the subway whenever its too hot. But that might depend on the day, for example, if it starts raining on weekend, when people tend to go out for recreational purposes, I would expect less people to take the subway because some people would refrain to go out if it is raining (or if it's about to rain), but if it's raining at 8:00 a.m. in a weekday, I would expect more people to take the subway, because even if it's raining, most of the people still will have to go to work and I find very likely that more people than habitual will take the subway just to avoid rain. So I also included interaction features between rain, tempi and the weekday indicator feature.
 
-According to my experience with hour and day features, the effect of a feature over ridership might differ greatly between UNITs, so it's very likely that the interactions between weather and UNIT features are also relevant, meaning that there can be really weather-sensitive UNITs and some others practically unaffected, but when I tried adding a feature considering a weather variable for each UNIT, the model started to overfit (according to the cross validation technique I was using), so I didn't created any interaction terms between UNIT and rain or tempi features.
+According to my experience with hour and day features, the effect of a feature over ridership might differ greatly between UNITs, so it's very likely that the interactions between weather and UNIT features are also relevant, meaning that there can be really weather-sensitive UNITs and some others practically unaffected, but when I tried adding a feature considering a weather variable for each UNIT, the model started to over fit (according to the cross validation technique I was using), so I didn't created any interaction terms between UNIT and rain or tempi features.
 
 
 * **2.4 What are the parameters (also known as "coefficients" or "weights") of the non-dummy features in your linear regression model?**
@@ -198,7 +198,7 @@ R<sup>2</sup> testing dataset: 0.8467
 
 * **2.6 What does this R2 value mean for the goodness of fit for your regression model? Do you think this linear model to predict ridership is appropriate for this dataset, given this R2  value?**
 
-R<sup>2</sup> is an indicator of how much of the variance in the data is being explain by the model, being 0 the lowest value, meaning nothing it's being explained and 1 the highest possible value which would mean that everything in the data has being modeled, in a real escenario, this would also mean that the expected random noise in the data has been also modeled and most likely the model will have very low, if any, predictive power. 
+R<sup>2</sup> is an indicator of how much of the variance in the data is being explain by the model, being 0 the lowest value, meaning nothing it's being explained and 1 the highest possible value which would mean that everything in the data has being modeled, in a real scenario, this would also mean that the expected random noise in the data has been also modeled and most likely the model will have very low, if any, predictive power. 
 
 The obtained R<sup>2</sup> means that the model can explain about 87% of the data, while the R<sup>2</sup> over the testing dataset means that while the model have a good score as a descriptive model, also have a strong predictive power, because it was able to predict about 85% of the variance of previously unseen data points.
 
@@ -227,7 +227,7 @@ ggplot(aes(x = ENTRIESn_hourly), data = tw.test) +
 ```
 
 
-* **3.2 One visualization can be more freeform. You should feel free to implement something that we discussed in class (e.g., scatter plots, line plots) or attempt to implement something more advanced if you'd like. Some suggestions are:
+* **3.2 One visualization can be more free form. You should feel free to implement something that we discussed in class (e.g., scatter plots, line plots) or attempt to implement something more advanced if you'd like. Some suggestions are:
 Ridership by time-of-day
 Ridership by day-of-week**
 
@@ -276,13 +276,13 @@ I think the fact that the dataset comes only from May, 2011 introduces some bias
 
 There are two UNITs that have an unusual pattern across the month, R459 and R464, one of them is never used in the whole dataset, and the other one was active only for a few days, I think this two UNITs could be considered outliers. 
 
-Also, there are some data points where the number of entries drastically drops, compared to the rest of the data points, I'm guessing that could be because the station closes due to some maintainance, I think this cases might also be acting as outliers.
+Also, there are some data points where the number of entries drastically drops, compared to the rest of the data points, I'm guessing that could be because the station closes due to some maintenance, I think this cases might also be acting as outliers.
 
 There's very little information about some weather variables, specially fog, which, I think, makes it harder to correlate them to the ridership.
 
 About the linear regression model, an issue is that OLS can be very computational intense, sometimes it took up to 15 minutes to fit the model, in that sense, Gradient descent could be a better idea. 
 
-Linear regression can be very sensitive to outliers, because the estimator wil l try to minimize the Mean Square Error, this means that the difference between the outliers and the predictions will be minimized by the estimator, pulling the slope of the model towards the outliers and against the observations.
+Linear regression can be very sensitive to outliers, because the estimator will l try to minimize the Mean Square Error, this means that the difference between the outliers and the predictions will be minimized by the estimator, pulling the slope of the model towards the outliers and against the observations.
 
 Regarding the model itself,  the number of features that I included in the model might be a potential shortcoming, having 2190 features (Including dummy variables) makes the model harder to understand and interpret, and probably, despite of the applied cross-validation technique might have started to overfit.
 
