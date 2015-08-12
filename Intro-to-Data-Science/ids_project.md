@@ -1,16 +1,6 @@
----
-title: "Intro to data science project"
-author: "Daniel Nava"
-output:
-  html_document:
-    keep_md: yes
----
-```{r, echo=FALSE}
-library(ggplot2)
-setwd("C:/Users/administrator/Downloads")
-turnstile_weather <- read.csv('turnstile_weather_v2.csv')
+# Intro to data science project
+Daniel Nava  
 
-```
 
 ##Section 0. References
 Here's a list of the websites that I found helpful to complete this project:
@@ -69,11 +59,21 @@ I used **UNIT** as a representation of **location**, I thought that where a stat
 
 I chose UNIT over station variable because some stations can contain more than one UNIT, which might represent a problem because there are many stations where the difference of the mean ridership for the contained UNITs is very wide, for example, station **34 ST-HERALD SQ**, which contains UNITS **UNITR022 and UNITR023**, where according to their descriptive stats UNIT R022 have a higher number of entries overall:
 
-```{r}
 
+```r
 tw.station <- subset(turnstile_weather,turnstile_weather$station =='34 ST-HERALD SQ')
 tw.station$UNIT <- factor(tw.station$UNIT)
 with(tw.station, by(ENTRIESn_hourly, UNIT, summary))
+```
+
+```
+## UNIT: R022
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     283    1886    8654    9534   13320   32290 
+## -------------------------------------------------------- 
+## UNIT: R023
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##     208    1258    4892    6169    8402   18140
 ```
 
 Given that using station as a dummy feature in the linear regression model will assign a coefficient for each station, I consider that it's very unlikely that using station could represent better all the variance in those entries than using UNITs as a dummy feature, where each UNIT will get a coefficient.
@@ -83,19 +83,7 @@ I used **day_week** and **hour** to represent **time** in my model. I thought th
 
 As I mentioned before, I included them as **polynomial terms**, that's because the relationship of this variables to the number of entries **is not linear**, I don't expect the ridership to increase as hour or the day of the week increases. I expect it to fluctuate, to increase and decrease over the course of the week:
 
-```{r, echo=FALSE}
-set.seed(80)
-ids <- sample(levels(turnstile_weather$UNIT), 5)
-UNITS_subsample <- subset(turnstile_weather, UNIT %in% ids)
-datetime <- levels(turnstile_weather$datetime)
-ggplot(aes(x = datetime, y = ENTRIESn_hourly, color = UNIT, group = UNIT), data=UNITS_subsample) +
-  geom_line() +
-  coord_cartesian(xlim = c(0,42)) +
-  scale_x_discrete(breaks = datetime[seq(1,42,6)], labels =c ("May 1st","May 2nd","May 3rd","May 4th","May 5th", "May 6th","May 7th")) +
-  xlab("Day") +
-  ylab("Number of entries") +
-  ggtitle("Number of entries across days and hours (May 1st - 7th week)")
-```
+![](ids_project_files/figure-html/unnamed-chunk-3-1.png) 
 
 The plot shows the non-linear relationship I referred to, and how it affects 5 different UNITS. As we can see, an increase in the hour and day variable does not necessarily relate to an increase on the number of entries.
 
@@ -105,33 +93,13 @@ At this point, the model will create a generalization of the effect of day and h
 
 There are UNITS where, ignoring abnormal outliers, the difference between the lowest and the highest number of entries is very large or very small, sometimes this difference is in tens of thousands and some others times the differences is barely hundreds of entries, and given that the difference between the lowest and the highest value of the pattern created by the model will be constant and just dragged higher or lower by categorical features, the variance explained by this pattern won't be enough to make relatively accurate predictions:
 
-```{r}
+
+```r
 #Creating model without interactions
 model_without_interactions <- lm(ENTRIESn_hourly ~ UNIT + poly(day_week,2) + poly(hour,5), data = turnstile_weather) 
 turnstile_weather$predictions <- fitted(model_without_interactions)
 ```
-```{r, echo=FALSE}
-set.seed(80)
-ids <- sample(levels(turnstile_weather$UNIT), 5)
-UNITS_subsample <- subset(turnstile_weather, UNIT %in% ids)
-datetime <- levels(turnstile_weather$datetime)
-ggplot(aes(x = datetime, y = predictions, color = UNIT, group = UNIT), data=UNITS_subsample) +
-  geom_line() +
-  coord_cartesian(xlim = c(0,42)) +
-  scale_x_discrete(breaks = datetime[seq(1,42,6)], labels =c ("May 1st","May 2nd","May 3rd","May 4th","May 5th", "May 6th","May 7th")) +
-  xlab("Day") +
-  ylab("Predicted number of entries") +
-  ggtitle("Predictions without interactions (May 1st - 7th week)")
-
-ggplot(aes(x = datetime, y = ENTRIESn_hourly, color = UNIT, group = UNIT), data=UNITS_subsample) +
-  geom_line() +
-  coord_cartesian(xlim = c(0,42)) +
-  scale_x_discrete(breaks = datetime[seq(1,42,6)], labels =c ("May 1st","May 2nd","May 3rd","May 4th","May 5th", "May 6th","May 7th")) +
-  xlab("Day") +
-  ylab("Number of entries") +
-  ggtitle("Number of entries across days and hours (May 1st - 7th week)")
-
-```
+![](ids_project_files/figure-html/unnamed-chunk-5-1.png) ![](ids_project_files/figure-html/unnamed-chunk-5-2.png) 
 
 *Same UNITS were used for both plots. 
 The first plot shows the pattern that I was writing about in the last paragraph and how it gets moved up and down depending on the UNIT variable, and the second plot shows the actual values for that same UNITs.
@@ -141,24 +109,13 @@ If we take a closer look to UNIT R023, we'll see that the pattern drawn by obser
 
 To fix this, I used **"interaction terms"**, multiplying all of the current features in the model with each other, as a way to include in the model the effect of the relationship of two variables over the dependent variable:
 
-```{r}
+
+```r
 #Creating model with interactions
 model_with_interactions <- lm(ENTRIESn_hourly  ~ UNIT + UNIT:poly(day_week,2) + UNIT:poly(hour,5) + poly(day_week,2) + poly(hour,5) + poly(hour,5):poly(day_week,2), data = turnstile_weather) 
 turnstile_weather$predictions <- fitted(model_with_interactions)
 ```
-```{r, echo=FALSE}
-set.seed(80)
-ids <- sample(levels(turnstile_weather$UNIT), 5)
-UNITS_subsample <- subset(turnstile_weather, UNIT %in% ids)
-datetime <- levels(turnstile_weather$datetime)
-ggplot(aes(x = datetime, y = predictions, color = UNIT, group = UNIT), data=UNITS_subsample) +
-  geom_line() +
-  coord_cartesian(xlim = c(0,42)) +
-  scale_x_discrete(breaks = datetime[seq(1,42,6)], labels =c ("May 1st","May 2nd","May 3rd","May 4th","May 5th", "May 6th","May 7th")) +
-  xlab("Day") +
-  ylab("Predicted number of entries") +
-  ggtitle("Predictions with interactions (May 1st - 7th week)")
-```
+![](ids_project_files/figure-html/unnamed-chunk-7-1.png) 
 
 The interaction terms I used as features are:
 * UNIT and hour
@@ -182,10 +139,47 @@ According to my experience with hour and day features, the effect of a feature o
 * **2.4 What are the parameters (also known as "coefficients" or "weights") of the non-dummy features in your linear regression model?**
 
 This are the coefficients of my model, excluding all the features related to UNIT.
-```{r,echo=FALSE}
-setwd("C:/Users/administrator/Downloads")
-coefficients <- read.csv('coefficients.csv')
-coefficients
+
+```
+##                              Feature   Coefficient
+## 1                        (Intercept)  3.598865e+02
+## 2                 poly(day_week, 2)1 -5.749824e+03
+## 3                 poly(day_week, 2)2 -8.489420e+03
+## 4                     poly(hour, 5)1  1.825230e+04
+## 5                     poly(hour, 5)2  2.771994e+04
+## 6                     poly(hour, 5)3 -1.953643e+04
+## 7                     poly(hour, 5)4  7.227157e+04
+## 8                     poly(hour, 5)5  3.934022e+04
+## 9                               rain -6.251991e+02
+## 10                             tempi -2.224258e+00
+## 11 poly(day_week, 2)1:poly(hour, 5)1 -1.569726e+06
+## 12 poly(day_week, 2)2:poly(hour, 5)1 -1.286320e+06
+## 13 poly(day_week, 2)1:poly(hour, 5)2 -1.702879e+06
+## 14 poly(day_week, 2)2:poly(hour, 5)2 -2.416750e+06
+## 15 poly(day_week, 2)1:poly(hour, 5)3 -1.463026e+06
+## 16 poly(day_week, 2)2:poly(hour, 5)3  3.434646e+06
+## 17 poly(day_week, 2)1:poly(hour, 5)4 -3.375525e+06
+## 18 poly(day_week, 2)2:poly(hour, 5)4 -3.180554e+06
+## 19 poly(day_week, 2)1:poly(hour, 5)5  6.877734e+05
+## 20 poly(day_week, 2)2:poly(hour, 5)5 -3.410610e+06
+## 21            poly(hour, 5)1:weekday  1.431080e+05
+## 22            poly(hour, 5)2:weekday -5.693641e+04
+## 23            poly(hour, 5)3:weekday -1.297916e+04
+## 24            poly(hour, 5)4:weekday  4.453877e+04
+## 25            poly(hour, 5)5:weekday  5.622740e+04
+## 26               poly(hour, 5)1:rain -1.199470e+04
+## 27               poly(hour, 5)2:rain  8.480591e+03
+## 28               poly(hour, 5)3:rain  8.757911e+03
+## 29               poly(hour, 5)4:rain  4.645161e+01
+## 30               poly(hour, 5)5:rain -5.025084e+03
+## 31                      weekday:rain -7.084615e+01
+## 32              poly(hour, 5)1:tempi -1.590659e+03
+## 33              poly(hour, 5)2:tempi -2.147493e+02
+## 34              poly(hour, 5)3:tempi  1.584233e+02
+## 35              poly(hour, 5)4:tempi -1.368883e+03
+## 36              poly(hour, 5)5:tempi -1.026817e+03
+## 37                     weekday:tempi -1.498018e+01
+## 38                        rain:tempi  9.925564e+00
 ```
 
 
@@ -213,20 +207,7 @@ If you decide to use to two separate plots for the two histograms, please ensure
 For the histograms, you should have intervals representing the volume of ridership (value of ENTRIESn_hourly) on the x-axis and the frequency of occurrence on the y-axis. For example, each interval (along the x-axis), the height of the bar for this interval will represent the number of records (rows in our data) that have ENTRIESn_hourly that falls in this interval.
 Remember to increase the number of bins in the histogram (by having larger number of bars). The default bin width is not sufficient to capture the variability in the two samples.**
 
-```{r, echo = FALSE}
-
-tw.test<- turnstile_weather
-tw.test$rain <- factor(tw.test$rain) 
-levels(tw.test$rain)[levels(tw.test$rain)== "0"] <- "Clear"
-levels(tw.test$rain)[levels(tw.test$rain)== "1"] <- "Rainy"
-
-ggplot(aes(x = ENTRIESn_hourly), data = tw.test) +
-  geom_bar(binwidth = 250) +
-  facet_grid(rain ~ ., scale = "free_y") +
-  xlab("Number of entries") +
-  ggtitle("Ridership on non-rainy vs rainy days") +
-  coord_cartesian( xlim = c(0,12500)) 
-```
+![](ids_project_files/figure-html/unnamed-chunk-9-1.png) 
 
 
 * **3.2 One visualization can be more free form. You should feel free to implement something that we discussed in class (e.g., scatter plots, line plots) or attempt to implement something more advanced if you'd like. Some suggestions are:
@@ -234,16 +215,7 @@ Ridership by time-of-day
 Ridership by day-of-week**
 
 
-```{r, echo=FALSE}
-weather_model <- lm(ENTRIESn_hourly ~ UNIT + UNIT:poly(day_week,2) + UNIT:poly(hour,5) + poly(day_week,2) + poly(hour,5) + poly(hour,5):poly(day_week,2) + UNIT:weekday + weekday:poly(hour,5) + rain + rain:poly(hour,5) + rain:weekday + tempi + tempi:poly(hour,5) + tempi:weekday + rain:tempi, data = turnstile_weather)
-turnstile_weather$fitted <- fitted(weather_model)
-
-ggplot(aes(x = ENTRIESn_hourly, y = fitted), data = turnstile_weather) +
-  geom_point(position = position_jitter(h=0)) +
-  ggtitle("Predictions vs actual values") +
-  xlab("Observations") +
-  ylab("Predictions")
-```
+![](ids_project_files/figure-html/unnamed-chunk-10-1.png) 
 
 
 ## Section 4. Conclusion
@@ -260,8 +232,19 @@ With the p-value obtained from Mann-Whitney U-test, I was able to determinate th
 
 Now that I know that there's a difference, to determine which sample have a greater ridership, I performed some descriptive statistics:
 
-```{r}
+
+```r
 with(turnstile_weather, by(ENTRIESn_hourly, rain, summary))
+```
+
+```
+## rain: 0
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0     269     893    1846    2197   32810 
+## -------------------------------------------------------- 
+## rain: 1
+##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+##       0     295     939    2028    2424   32290
 ```
 
 According to the means, I was able to conclude that the ridership when it's raining tend to be higher that when it's not raining.
