@@ -17,16 +17,16 @@ The data was obtained via the [overpass API](http://www.overpass-api.de/query_fo
 
 ###Problems encountered in your map
 I performed a quick analysis over the data, where I discovered the following issues:
-    * Inconsistencies due to different ways of writing acronyms and abbreviations
-    * Words in all caps or all lowercase
-    * Typos and misspelled words
+  * Inconsistencies due to different ways of writing acronyms and abbreviations
+  * Words in all caps or all lowercase
+  * Typos and misspelled words
     
 #### Acronyms and Abbreviations
 I found out that was very common that a same a acronyms were written in many different ways, for example, with and without dots, all caps or all lowercase, here are some real examples of this situation found in the dataset: 
-    * Acronyms: 
-        * S.E.P. Which is an acronym for "Secretariat of Public Education" in spanish was found as "S.E.P." and as "sep". 
-        * C.U.C.E.A. which is the name of a public university, was also found as "Cucea", "cucea" and "C.U.C.E.A." 
-        * I.M.S.S. is a public health institution and was found as "I.M.S.S.", and "imss".
+  * Acronyms: 
+    * S.E.P. Which is an acronym for "Secretariat of Public Education" in spanish was found as "S.E.P." and as "sep". 
+    * C.U.C.E.A. which is the name of a public university, was also found as "Cucea", "cucea" and "C.U.C.E.A." 
+    * I.M.S.S. is a public health institution and was found as "I.M.S.S.", and "imss".
 
 Abbreviations had a similar problem, sometimes an abbreviation were found in lowercase, without and/or without any dot. Also, there were some scenarios, where one part of the street is named with an abbreviation, but another part is not, which isn't really an issue for people, but can be misleading to software that rely on OpenStreetMap data, such as GPS systems, here's an example of such situation:
 ![In this example, the left side of the street is named "Av. Mexico" and the right side of the street is name "Avenida Mexico".](images/abbr.jpg)
@@ -34,9 +34,9 @@ Where the left side of the street is named "Av. Mexico" and the right side of th
 
 As I currently live in the explored zone, I knew some examples that I thought might be falling on these issues, however, to identify all of them, I performed an analysis with the help of a Regex expression, which helped me to Identify all the strings that contains dots in them, so I can determine if a word should be treated as an abbreviation or acronym or not. 
 To fix these situations, as part of the program which reads the XML file, I created two different process, one for acronyms and one for abbreviations:
-    * In the case of **acronyms**, I created a list, where I stored all the found cases in the right way they should be written, then, the program looks for the same word without dots and/or in lowercase and replace it with the word I put in the list.
-    
-    * For **abbreviations**, I used a dictionary, where the key is the full word (Or the way that I want to see expressed that word after the process), and in the value corresponding to that key, I stored all different ways of writing that word that I found during the analysis.
+
+  * In the case of **acronyms**, I created a list, where I stored all the found cases in the right way they should be written, then, the program looks for the same word without dots and/or in lowercase and replace it with the word I put in the list.
+  * For **abbreviations**, I used a dictionary, where the key is the full word (Or the way that I want to see expressed that word after the process), and in the value corresponding to that key, I stored all different ways of writing that word that I found during the analysis.
     
 #### Capitalizing words
 I found some cases where entire sentences were written completely in uppercase, or completely in lowercase.
@@ -47,25 +47,27 @@ The capitalization process won't affect special sentences such as websites or em
 #### Typos and Misspellings
 During the exploratory analysis of the dataset I realized that most of the inconsistencies in the data were because of misspelled words. 
 To attack this problem, I categorized these errors as:
-    * Typos: Words that were incorrectly spelled due to keyboard errors, such as transpositions ("Avneida" instead of "Avenida"), missing letters, and typing the wrong letter due to its proximity to the correct letter in the qwerty keyboard configuration.
-    * Misspellings: Words that were wrongly spelled due to one of the following situations:
-        * Letters that sound similarly in spanish, such as "s" and "z", or "b" and "v".
-        * In Spanish, we use an orthographic symbol called "Acento" (Accent), which is used to differentiate words that are written the same, but sounds different when spoken and have different meaning. However, it is easy to miss an accent as is difficult to identify if a word should be accented while writing.
+
+  * Typos: Words that were incorrectly spelled due to keyboard errors, such as transpositions ("Avneida" instead of "Avenida"), missing letters, and typing the wrong letter due to its proximity to the correct letter in the qwerty keyboard configuration.
+  * Misspellings: Words that were wrongly spelled due to one of the following situations:
+    * Letters that sound similarly in spanish, such as "s" and "z", or "b" and "v".
+    * In Spanish, we use an orthographic symbol called "Acento" (Accent), which is used to differentiate words that are written the same, but sounds different when spoken and have different meaning. However, it is easy to miss an accent as is difficult to identify if a word should be accented while writing.
         
-Because of this situation I build the following process:
-    1. Created a dictionary with all the words in the dataset as keys, and as values for each word, how many times each word appears in the whole dataset.
+Because of this situation I added the following process:
+
+  1. Created a dictionary with all the words in the dataset as keys, and as values for each word, how many times each word appears in the whole dataset.
     
-    2. Compared each found word with each other using the edit_distance implementation of the NLTK library, any word that is less than 2 edits away from each other is treated as a possible typo.
+  2. Compared each found word with each other using the edit_distance implementation of the NLTK library, any word that is less than 2 edits away from each other is treated as a possible typo.
     
-    3. With this process many correct words were detected as possible typos, to rule out words that might be correct, any word that appears more than 3 times in the dataset is ignored, mainly because incorrectly typed words are less likely to appear than a correctly spelled word.
+  3. With this process many correct words were detected as possible typos, to rule out words that might be correct, any word that appears more than 3 times in the dataset is ignored, mainly because incorrectly typed words are less likely to appear than a correctly spelled word.
     
-    4.- At this point still some correct words might be still being treated as typos, to filter them out, I used a spelling corrector webservice called [After The Deadline](http://www.afterthedeadline.com/), where I sent a request with all the words that are possible typos, and the webservice responds whether the words are incorrectly spelled or not and possible corrections for each one. I ignored most of the corrections sent by this webservice and used as a filter, if the word were detected as correctly spelled word, it went discarted as a typo. The only kind of correction I used were when the a word was detected as incorrectly typed due to a missing accent.
+  4. At this point still some correct words might be still being treated as typos, to filter them out, I used a spelling corrector webservice called [After The Deadline](http://www.afterthedeadline.com/), where I sent a request with all the words that are possible typos, and the webservice responds whether the words are incorrectly spelled or not and possible corrections for each one. I ignored most of the corrections sent by this webservice and used as a filter, if the word were detected as correctly spelled word, it went discarted as a typo. The only kind of correction I used were when the a word was detected as incorrectly typed due to a missing accent.
     
-    5.- After The Deadline is a great webservice, but their spanish version have a problem, it doesn't recognize proper names, such as names of places and people's names and tend mark them as incorrect words. Which is a problem because most of the streets in Mexico have either the name of a relevant historical character or the name of a place, such as names of other states, cities or countries. To overcome this situation I relied on the [GeoNames webservice](http://www.geonames.org/). As the sentences found in the OpenStreetMap data at this point has been broken into words, making requests to GeoNames webservice with single words could get incorrect and hard to process results, so instead I downloaded a [GeoNames webservice dump](http://download.geonames.org/export/dump/) corresponding to Mexico, then processed and split the data into words, then used this new dataset as a cross-validation method, where a possible typo was discarded if found in the GeoNames dump.
+  5. After The Deadline is a great webservice, but their spanish version have a problem, it doesn't recognize proper names, such as names of places and people's names and tend mark them as incorrect words. Which is a problem because most of the streets in Mexico have either the name of a relevant historical character or the name of a place, such as names of other states, cities or countries. To overcome this situation I relied on the [GeoNames webservice](http://www.geonames.org/). As the sentences found in the OpenStreetMap data at this point has been broken into words, making requests to GeoNames webservice with single words could get incorrect and hard to process results, so instead I downloaded a [GeoNames webservice dump](http://download.geonames.org/export/dump/) corresponding to Mexico, then processed and split the data into words, then used this new dataset as a cross-validation method, where a possible typo was discarded if found in the GeoNames dump.
     
-    6.- At this point, very few correctly spelled words made it through all the filters, and most of the possible typos identified are indeed typos. So I builded a small heuristic program which checks for the reason of the typo, such as misspellings due to similar sounding letters, missing accents, transpositions and typing errors such as hitting the wrong key. The remaining words that weren't caught by any of the predefined rules in this program are shown to the user trough the Command interface, where I chose whether if a correction for a possible typo was valid or not.
+  6. At this point, very few correctly spelled words made it through all the filters, and most of the possible typos identified are indeed typos. So I builded a small heuristic program which checks for the reason of the typo, such as misspellings due to similar sounding letters, missing accents, transpositions and typing errors such as hitting the wrong key. The remaining words that weren't caught by any of the predefined rules in this program are shown to the user trough the Command interface, where I chose whether if a correction for a possible typo was valid or not.
     
-    7.- Lastly, the identified typos are replaced in the dataset by the found corrections.
+  7. Lastly, the identified typos are replaced in the dataset by the found corrections.
     
     
     
@@ -597,7 +599,7 @@ Because of this situation I build the following process:
 ####Aditional Ideas
 
 There's an additional consistency problem that I didn't address as part of the project, the data contains roads that have different names at different points of the road, especially those which have multiple lanes. In the following example becomes visible that part of the Avenue is called "Avenida de las Americas" meanwhile another part of the Avenue is called "Avenida Americas"
-![Avenida Americas vs Avenida de las Americas](images/Americas.jpg)
+![Avenida Americas vs Avenida de las Americas](images/americas.jpg)
 
 In this other example, the road named "Lazaro Cardenas" also appears as "Calzada Lazaro Cardenas":
 ![Lazaro Cardenas vs Calzada Lazaro Cardenas](images/lazaro_cardenas.jpg)
